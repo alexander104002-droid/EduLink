@@ -1,0 +1,7 @@
+{
+  "teachers": [
+    { "id": "guru_1", "name": "Bpk. Ahmad Fauzi", "subject": "Matematika", "phone": "0812-3456-7890", "email": "ahmad@smaneka.sch.id" },
+    { "id": "guru_2", "name": "Ibu Ratna Sari", "subject": "Bahasa Inggris", "phone": "0812-9876-5432", "email": "ratna@smaneka.sch.id" },
+    { "id": "guru_3", "name": "Bpk. Budi Santoso", "subject": "Fisika", "phone": "0812-5555-6666", "email": "budi@smaneka.sch.id" }
+  ]
+}
