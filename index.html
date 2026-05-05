@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Smaneka App</title>
+    <title>Smaneka App - JSON Integrated</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -31,6 +31,33 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        /** 
+         * --- DATA AKUN (SIMULASI USERS.JSON) ---
+         * Anda bisa menambahkan akun baru di sini. 
+         * Format: { username, password, role, name, id, subject (opsional) }
+         */
+        const USERS_JSON = [
+            { "username": "siswa", "password": "123", "role": "Siswa", "name": "Siswa Kelas 11", "id": "siswa_001" },
+            { "username": "guru", "password": "123", "role": "Guru", "name": "Bpk. Ahmad Fauzi", "id": "guru_1", "subject": "Matematika" },
+            { "username": "kantin", "password": "123", "role": "CS Kantin", "name": "Admin Kantin 01", "id": "cs_1" }
+        ];
+
+        /** 
+         * --- DATA DETAIL PROFIL (SIMULASI PROFILES.JSON) ---
+         * Data ini dipisahkan agar bisa ditambahkan seiring waktu tanpa mengganggu data login.
+         */
+        const PROFILES_JSON = [
+            { "id": "guru_1", "phone": "0812-3456-7890", "email": "ahmad@smaneka.sch.id", "status": "Available" },
+            { "id": "guru_2", "name": "Ibu Ratna Sari", "subject": "Bahasa Inggris", "phone": "0812-9876-5432", "email": "ratna@smaneka.sch.id", "status": "Busy" },
+            { "id": "cs_1", "phone": "0877-1122-3344", "email": "kantin@smaneka.sch.id", "status": "Online" }
+        ];
+
+        const MENU_JSON = [
+            { id: 1, name: 'Nasi Goreng', price: 12000, category: 'Makanan' },
+            { id: 2, name: 'Mie Goreng', price: 10000, category: 'Makanan' },
+            { id: 3, name: 'Es Teh Manis', price: 4000, category: 'Minuman' }
+        ];
+
         // --- Ikon SVG ---
         const Icon = ({ name, className }) => {
             const props = { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: 1.5, stroke: "currentColor", className: className || "w-6 h-6" };
@@ -50,138 +77,189 @@
             }
         };
 
-        // --- Halaman Login ---
-        const LoginView = ({ users, onLogin }) => {
+        // --- View Login (Menggunakan data dari USERS_JSON) ---
+        const LoginView = ({ onLogin }) => {
             const [u, setU] = useState('');
             const [p, setP] = useState('');
-            
             const handle = (e) => {
                 e.preventDefault();
-                const found = users.find(acc => acc.username === u && acc.password === p);
-                if (found) onLogin(found);
-                else alert('Login gagal! Periksa username/password di users.json');
+                const found = USERS_JSON.find(user => user.username === u && user.password === p);
+                if (found) {
+                    // Ambil data profil tambahan dari PROFILES_JSON
+                    const profileData = PROFILES_JSON.find(prof => prof.id === found.id) || {};
+                    onLogin({ ...found, ...profileData });
+                } else {
+                    alert('Username atau Password salah!');
+                }
             };
-
             return (
                 <div className="min-h-screen w-full flex items-center justify-center bg-blue-50 dark:bg-darkBg p-6 animate-fade-in">
                     <form onSubmit={handle} className="bg-white dark:bg-darkCard p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm border border-gray-100 dark:border-gray-800">
                         <div className="text-center mb-8">
-                            <h1 className="text-4xl font-black text-primary mb-2 italic tracking-tighter uppercase italic">Smaneka</h1>
-                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Digital Hub</p>
+                            <h1 className="text-4xl font-black text-primary mb-2 italic">Smaneka</h1>
+                            <p className="text-gray-400 text-sm font-medium tracking-widest uppercase">Portal Digital</p>
                         </div>
-                        <input type="text" placeholder="Username" className="w-full p-4 bg-gray-50 dark:bg-darkBg rounded-2xl mb-4" onChange={e=>setU(e.target.value)} />
-                        <input type="password" placeholder="Password" className="w-full p-4 bg-gray-50 dark:bg-darkBg rounded-2xl mb-6" onChange={e=>setP(e.target.value)} />
-                        <button className="w-full bg-primary text-white py-4 rounded-2xl font-black">Masuk</button>
+                        <div className="space-y-4">
+                            <input type="text" placeholder="Username" className="w-full p-4 bg-gray-50 dark:bg-darkBg border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all" value={u} onChange={e=>setU(e.target.value)} />
+                            <input type="password" placeholder="Password" className="w-full p-4 bg-gray-50 dark:bg-darkBg border-none rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all" value={p} onChange={e=>setP(e.target.value)} />
+                        </div>
+                        <button className="w-full bg-primary text-white py-4 rounded-2xl font-bold mt-8 shadow-lg shadow-primary/30 active:scale-95 transition-all">Masuk Akun</button>
                     </form>
                 </div>
             );
         };
 
-        // --- Halaman Profil (Input & Edit) ---
-        const ProfileView = ({ user, contacts, onUpdate }) => {
-            // Temukan data profil guru berdasarkan ID user yang sedang login
-            const myContact = contacts.find(c => c.id === user.id) || { name: user.name, phone: '', email: '' };
-            const [form, setForm] = useState({ ...myContact });
+        // --- View Settings ---
+        const SettingsView = ({ onBack, isDark, setDark, onLogout }) => {
+            const [budget, setBudget] = useState('1000000');
+            return (
+                <div className="animate-fade-in min-h-screen w-full bg-blue-50 dark:bg-darkBg p-6">
+                    <div className="flex items-center gap-4 mb-10">
+                        <button onClick={onBack} className="p-3 bg-white dark:bg-darkCard shadow-sm rounded-2xl transition-colors"><Icon name="Back" /></button>
+                        <h2 className="text-2xl font-black">Settings</h2>
+                    </div>
+                    <section className="mb-6 bg-white dark:bg-darkCard p-6 rounded-[2rem] shadow-sm">
+                        <h3 className="text-emerald-500 font-black text-xs uppercase tracking-widest mb-4">Anggaran Bulanan</h3>
+                        <input type="number" value={budget} onChange={e=>setBudget(e.target.value)} className="w-full bg-gray-50 dark:bg-darkBg p-4 rounded-2xl outline-none font-mono mb-4" />
+                        <button className="w-full bg-orange-500 text-white p-4 rounded-2xl font-black shadow-lg shadow-orange-500/20 active:scale-95 transition-all">Simpan Anggaran</button>
+                    </section>
+                    <section className="mb-6 bg-white dark:bg-darkCard p-5 rounded-[2rem] flex justify-between items-center">
+                        <span className="font-bold">Mode Gelap</span>
+                        <button onClick={() => setDark(!isDark)} className={`w-14 h-8 rounded-full transition-all relative ${isDark ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${isDark ? 'left-7' : 'left-1'}`}></div>
+                        </button>
+                    </section>
+                    <button onClick={onLogout} className="w-full p-5 bg-white dark:bg-darkCard border border-red-100 rounded-[2rem] text-red-500 font-black flex items-center justify-center gap-3 active:scale-95 transition-all"><Icon name="Logout" /> Keluar & Hapus Sesi</button>
+                </div>
+            );
+        };
 
-            const save = (e) => {
+        // --- View Profil (Update Data) ---
+        const ProfileEditView = ({ user, onUpdate }) => {
+            const [form, setForm] = useState({ name: user.name, phone: user.phone || '', email: user.email || '' });
+            const handle = (e) => {
                 e.preventDefault();
                 onUpdate(form);
+                alert('Profil Diperbarui!');
             };
-
             return (
-                <div className="animate-fade-in space-y-6">
-                    <div className="bg-white dark:bg-darkCard p-6 rounded-[2rem] text-center">
-                        <h2 className="text-xl font-black uppercase italic">{user.role} Profil</h2>
+                <div className="animate-fade-in w-full">
+                    <div className="bg-white dark:bg-darkCard p-8 rounded-[2.5rem] shadow-sm mb-6 text-center border border-gray-100 dark:border-gray-800">
+                        <div className="w-20 h-20 bg-primary/10 rounded-full mx-auto mb-4 flex items-center justify-center text-primary font-black text-3xl">{user.name[0]}</div>
+                        <h2 className="text-2xl font-black">{user.role}</h2>
+                        <p className="text-gray-400 text-xs font-bold uppercase">{user.id}</p>
                     </div>
-                    <form onSubmit={save} className="space-y-4">
-                        <input type="text" value={form.name} placeholder="Nama" className="w-full p-4 rounded-2xl border-none shadow-sm dark:bg-darkCard" onChange={e=>setForm({...form, name: e.target.value})} />
-                        <input type="text" value={form.phone} placeholder="Telepon" className="w-full p-4 rounded-2xl border-none shadow-sm dark:bg-darkCard" onChange={e=>setForm({...form, phone: e.target.value})} />
-                        <input type="email" value={form.email} placeholder="Email" className="w-full p-4 rounded-2xl border-none shadow-sm dark:bg-darkCard" onChange={e=>setForm({...form, email: e.target.value})} />
-                        <button className="w-full bg-emerald-500 text-white p-4 rounded-2xl font-black flex items-center justify-center gap-2"> <Icon name="Save" /> UPDATE DATA </button>
+                    <form onSubmit={handle} className="space-y-4">
+                        <div className="bg-white dark:bg-darkCard p-2 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                            <div className="flex items-center p-3 border-b dark:border-gray-800"><Icon name="Profil" className="w-5 h-5 text-gray-300 mr-3" /><input type="text" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-transparent outline-none font-bold" placeholder="Nama Lengkap" /></div>
+                            <div className="flex items-center p-3 border-b dark:border-gray-800"><Icon name="Phone" className="w-5 h-5 text-gray-300 mr-3" /><input type="text" value={form.phone} onChange={e=>setForm({...form, phone: e.target.value})} className="w-full bg-transparent outline-none font-bold" placeholder="Nomor Telepon" /></div>
+                            <div className="flex items-center p-3"><Icon name="Mail" className="w-5 h-5 text-gray-300 mr-3" /><input type="email" value={form.email} onChange={e=>setForm({...form, email: e.target.value})} className="w-full bg-transparent outline-none font-bold" placeholder="Email Instansi" /></div>
+                        </div>
+                        <button className="w-full bg-emerald-500 text-white py-5 rounded-[2rem] font-black shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">SIMPAN PROFIL</button>
                     </form>
                 </div>
             );
         };
 
-        // --- App Utama ---
         const App = () => {
             const [user, setUser] = useState(null);
-            const [usersData, setUsersData] = useState([]);
-            const [contactsData, setContactsData] = useState([]);
             const [activeTab, setActiveTab] = useState('Beranda');
             const [isDark, setDark] = useState(false);
             const [showSettings, setShowSettings] = useState(false);
-
-            // Fetch Data JSON seiring waktu (saat pertama kali dimuat)
-            useEffect(() => {
-                fetch('./users.json').then(res => res.json()).then(data => setUsersData(data.accounts));
-                fetch('./contacts.json').then(res => res.json()).then(data => setContactsData(data.teachers));
-            }, []);
+            const [localProfiles, setLocalProfiles] = useState(PROFILES_JSON);
 
             useEffect(() => {
-                if (isDark) document.documentElement.classList.add('class', 'dark');
-                else document.documentElement.classList.remove('class', 'dark');
+                if (isDark) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
             }, [isDark]);
 
-            if (!user) return <LoginView users={usersData} onLogin={setUser} />;
+            if (!user) return <LoginView onLogin={setUser} />;
 
-            const updateContact = (newData) => {
-                // Update sosi state kontak lokal (Agar kontak berubah seiring waktu di UI)
-                setContactsData(prev => {
-                    const exists = prev.find(c => c.id === user.id);
-                    if (exists) return prev.map(c => c.id === user.id ? { ...c, ...newData } : c);
-                    return [...prev, { id: user.id, ...newData }];
+            const handleUpdate = (data) => {
+                setUser({ ...user, ...data });
+                setLocalProfiles(prev => {
+                    const idx = prev.findIndex(p => p.id === user.id);
+                    if (idx > -1) {
+                        const next = [...prev];
+                        next[idx] = { ...next[idx], ...data };
+                        return next;
+                    }
+                    return [...prev, { id: user.id, ...data }];
                 });
-                alert('Data diperbarui di sistem sementara!');
             };
 
             const renderContent = () => {
-                if (showSettings) return (
-                    <div className="p-6 bg-blue-50 dark:bg-darkBg min-h-screen">
-                        <button onClick={()=>setShowSettings(false)} className="mb-6"><Icon name="Back"/></button>
-                        <button onClick={()=>setDark(!isDark)} className="w-full bg-white dark:bg-darkCard p-4 rounded-2xl font-bold mb-4">Toggle Dark Mode</button>
-                        <button onClick={()=>setUser(null)} className="w-full bg-red-500 text-white p-4 rounded-2xl font-black">LOGOUT</button>
-                    </div>
-                );
-
+                if (showSettings) return <SettingsView onBack={() => setShowSettings(false)} isDark={isDark} setDark={setDark} onLogout={() => {setUser(null); setShowSettings(false);}} />;
+                
                 switch (activeTab) {
-                    case 'Beranda': return <div className="bg-white dark:bg-darkCard p-10 rounded-[2.5rem]"><h2 className="text-3xl font-black italic">Halo, {user.name.split(' ')[0]}!</h2><p className="text-primary font-bold">{user.role}</p></div>;
-                    case 'Kontak': return (
-                        <div className="space-y-4">
-                            {contactsData.map(c => (
-                                <div key={c.id} className="bg-white dark:bg-darkCard p-5 rounded-[2rem] flex items-center gap-4 shadow-sm">
-                                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-black">{c.name[0]}</div>
-                                    <div>
-                                        <p className="font-black text-sm">{c.name}</p>
-                                        <p className="text-[10px] font-bold text-gray-400">{c.phone || '-'}</p>
-                                        <p className="text-[10px] font-bold text-primary">{c.email || '-'}</p>
-                                    </div>
+                    case 'Beranda': return (
+                        <div className="animate-fade-in">
+                            <div className="bg-white dark:bg-darkCard p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-gray-800 mb-6 text-center">
+                                <h2 className="text-3xl font-black italic tracking-tighter uppercase">Halo, {user.name.split(' ')[0]}!</h2>
+                                <p className="text-gray-400 font-bold text-xs uppercase tracking-widest">{user.role}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-emerald-500 p-6 rounded-[2rem] text-white"> <p className="text-[10px] font-bold uppercase opacity-80">Budget</p> <p className="text-xl font-black">Rp 125rb</p> </div>
+                                <div className="bg-primary p-6 rounded-[2rem] text-white"> <p className="text-[10px] font-bold uppercase opacity-80">Poin</p> <p className="text-xl font-black">450 Pts</p> </div>
+                            </div>
+                        </div>
+                    );
+                    case 'Kantin': return (
+                        <div className="grid grid-cols-1 gap-4 animate-fade-in mb-32">
+                            {MENU_JSON.map(item => (
+                                <div key={item.id} className="bg-white dark:bg-darkCard p-5 rounded-[2.2rem] shadow-sm flex justify-between items-center border border-gray-100 dark:border-gray-800">
+                                    <div className="pl-2"> <p className="font-black text-lg">{item.name}</p> <p className="text-emerald-500 font-bold text-sm">Rp {item.price.toLocaleString('id-ID')}</p> </div>
+                                    <button className="bg-primary text-white px-6 py-4 rounded-[1.5rem] font-black shadow-md active:scale-90 transition-all text-xs uppercase">Beli</button>
                                 </div>
                             ))}
                         </div>
                     );
-                    case 'Profil': return <ProfileView user={user} contacts={contactsData} onUpdate={updateContact} />;
-                    case 'Absen': return <div className="flex justify-center py-20"><div className="w-40 h-40 bg-primary rounded-[3rem] shadow-xl flex items-center justify-center text-white font-black italic">SCAN</div></div>;
-                    default: return <div className="text-center opacity-50 py-20 font-black">Coming Soon...</div>;
+                    case 'Kontak': return (
+                        <div className="grid grid-cols-1 gap-4 animate-fade-in mb-32">
+                            {/* Menampilkan kontak berdasarkan data di USERS_JSON yang memiliki role Guru */}
+                            {USERS_JSON.filter(u => u.role === 'Guru').map(t => {
+                                const prof = localProfiles.find(p => p.id === t.id) || {};
+                                return (
+                                    <div key={t.id} className="bg-white dark:bg-darkCard p-5 rounded-[2.2rem] flex items-center gap-4 border border-gray-100 dark:border-gray-800">
+                                        <div className="w-14 h-14 bg-blue-100 dark:bg-darkBg rounded-2xl flex items-center justify-center text-primary font-black text-xl">{t.name[5]}</div>
+                                        <div className="flex-1">
+                                            <p className="font-black text-sm">{t.name}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">{t.subject || 'Guru'}</p>
+                                            <p className="text-[11px] font-mono text-primary font-bold">{prof.phone || 'No Phone'}</p>
+                                        </div>
+                                        <button className="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-2xl"><Icon name="Chat" className="w-5 h-5" /></button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    );
+                    case 'Profil': return <ProfileEditView user={user} onUpdate={handleUpdate} />;
+                    case 'Absen': return (
+                        <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
+                            <button className="w-56 h-56 bg-primary text-white rounded-[4rem] shadow-2xl flex flex-col items-center justify-center gap-4 active:scale-90 transition-all border-8 border-blue-50 dark:border-gray-800">
+                                <Icon name="Absen" className="w-20 h-20" /> <span className="font-black italic uppercase">Scan Absen</span>
+                            </button>
+                        </div>
+                    );
                 }
             };
 
             const tabs = user.role === 'Siswa' ? ['Beranda', 'Absen', 'Kantin', 'Kontak'] : ['Beranda', 'Kantin', 'Kontak', 'Profil'];
 
             return (
-                <div className="w-screen min-h-screen transition-all flex flex-col bg-blue-50 dark:bg-darkBg">
+                <div className="w-screen min-h-screen bg-blue-50 dark:bg-darkBg transition-colors duration-300 relative flex flex-col">
                     {!showSettings && (
-                        <header className="p-6 flex justify-between items-center sticky top-0 z-20 backdrop-blur-md">
-                            <h1 className="text-2xl font-black italic text-primary uppercase">{activeTab}</h1>
-                            <button onClick={()=>setShowSettings(true)} className="p-4 bg-white dark:bg-darkCard rounded-2xl shadow-sm"><Icon name="Settings"/></button>
+                        <header className="p-6 flex justify-between items-center sticky top-0 bg-blue-50/90 dark:bg-darkBg/90 backdrop-blur-2xl z-20">
+                            <h1 className="text-2xl font-black text-primary italic uppercase tracking-tighter">{activeTab}</h1>
+                            <button onClick={() => setShowSettings(true)} className="p-4 bg-white dark:bg-darkCard shadow-sm rounded-2xl text-gray-400 active:scale-90"><Icon name="Settings" /></button>
                         </header>
                     )}
-                    <main className={!showSettings ? "p-6 flex-1" : ""}>{renderContent()}</main>
+                    <main className={`flex-1 w-full ${!showSettings ? "p-6" : ""}`}>{renderContent()}</main>
                     {!showSettings && (
-                        <nav className="fixed bottom-6 left-6 right-6 bg-white/70 dark:bg-darkCard/70 backdrop-blur-2xl rounded-[2.5rem] flex justify-around p-3 shadow-2xl z-30 pointer-events-auto">
-                            {tabs.map(t => (
-                                <button key={t} onClick={()=>setActiveTab(t)} className={`p-4 rounded-[1.8rem] transition-all ${activeTab === t ? 'bg-primary text-white scale-110' : 'text-gray-400'}`}>
-                                    <Icon name={t}/>
+                        <nav className="fixed bottom-6 left-6 right-6 bg-white/70 dark:bg-darkCard/70 backdrop-blur-3xl border border-white/20 dark:border-gray-800 rounded-[2.8rem] flex justify-around p-3 shadow-2xl pointer-events-auto">
+                            {tabs.map(tab => (
+                                <button key={tab} onClick={() => setActiveTab(tab)} className={`flex flex-col items-center p-4 rounded-[1.8rem] transition-all duration-300 ${activeTab === tab ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110 -translate-y-1' : 'text-gray-400'}`}>
+                                    <Icon name={tab} className="w-6 h-6" />
                                 </button>
                             ))}
                         </nav>
@@ -195,7 +273,7 @@
     </script>
     <style>
         .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         * { -webkit-tap-highlight-color: transparent; outline: none; }
     </style>
 </body>
