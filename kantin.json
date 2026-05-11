@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "name": "Nasi Ayam Geprek",
+    "price": 18000,
+    "description": "Sambel level 5 + Lalapan",
+    "category": "Makanan"
+  },
+  {
+    "id": 2,
+    "name": "Mie Goreng Spesial",
+    "price": 15000,
+    "description": "Telur, bakso, sayur",
+    "category": "Makanan"
+  },
+  {
+    "id": 3,
+    "name": "Es Jeruk Peras",
+    "price": 8000,
+    "description": "Dingin dan segar",
+    "category": "Minuman"
+  },
+  {
+    "id": 4,
+    "name": "Roti Bakar Coklat Keju",
+    "price": 10000,
+    "description": "Roti gandum + coklat & keju",
+    "category": "Snack"
+  },
+  {
+    "id": 5,
+    "name": "Bakso Urat",
+    "price": 12000,
+    "description": "Bakso besar + kuah panas",
+    "category": "Makanan"
+  }
+]
