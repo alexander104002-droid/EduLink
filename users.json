@@ -1,6 +1,7 @@
 {
   "accounts": [
     { "id": "siswa_1", "username": "siswa", "password": "123", "role": "Siswa", "name": "Siswa Kelas 11" },
+    { "id": "siswa_2", "username": "siswi01", "password": "123", "role": "Siswa", "name": "Ani Wijaya" },
     { "id": "guru_1", "username": "guru", "password": "123", "role": "Guru", "name": "Bpk. Ahmad Fauzi", "subject": "Matematika" },
     { "id": "kantin_1", "username": "kantin", "password": "123", "role": "CS Kantin", "name": "Admin Kantin" }
   ]
